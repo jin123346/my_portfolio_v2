@@ -7,7 +7,7 @@ class AppTheme {
   AppTheme._();
 
   // 앱의 주요 색상
-  static const Color primaryColor = Color(0xFF5E35B1); // 보라색 계열
+  static const Color primaryColor = Color(0xFF7E57C2); // 보라색 계열
   static const Color accentColor = Color(0xFFFF9800); // 주황색 계열
   static const Color backgroundColor = Color(0xFFF5F5F5); // 밝은 회색
   static const Color errorColor = Color(0xFFD32F2F); // 빨간색
@@ -15,6 +15,22 @@ class AppTheme {
   // 텍스트 색상
   static const Color textPrimaryColor = Color(0xFF212121); // 거의 검정색
   static const Color textSecondaryColor = Color(0xFF757575); // 중간 회색
+
+  // 간격 시스템 (여백과 간격의 일관성을 위한 값)
+  static const double spacingXxs = 4.0;
+  static const double spacingXs = 8.0;
+  static const double spacingSm = 12.0;
+  static const double spacingMd = 16.0;
+  static const double spacingLg = 24.0;
+  static const double spacingXl = 32.0;
+  static const double spacingXxl = 48.0;
+
+  // 반경 시스템 (모서리 둥글기의 일관성을 위한 값)
+  static const double radiusXs = 4.0;
+  static const double radiusSm = 8.0;
+  static const double radiusMd = 12.0;
+  static const double radiusLg = 16.0;
+  static const double radiusXl = 24.0;
 
   // 라이트 테마 설정
   static final ThemeData lightTheme = ThemeData(
@@ -292,4 +308,46 @@ class AppTheme {
       // 기타 다크 테마에 필요한 설정들...
       // (라이트 테마와 유사한 방식으로 설정하되 색상을 다크 모드에 맞게 조정)
       );
+
+  // 반응형 간격 얻기 (화면 크기에 따라 간격 조정)
+  static double getResponsiveSpacing(BuildContext context, double baseSpacing) {
+    final width = MediaQuery.of(context).size.width;
+
+    if (width < 600) {
+      // 모바일 화면: 기본 간격의 0.8배
+      return baseSpacing * 0.8;
+    } else if (width >= 1200) {
+      // 큰 화면: 기본 간격의 1.2배
+      return baseSpacing * 1.2;
+    }
+
+    // 기본값 반환
+    return baseSpacing;
+  }
+
+  // 여백용 SizedBox 생성 헬퍼 메서드들
+  static SizedBox get vSpaceXxs => SizedBox(height: spacingXxs);
+  static SizedBox get vSpaceXs => SizedBox(height: spacingXs);
+  static SizedBox get vSpaceSm => SizedBox(height: spacingSm);
+  static SizedBox get vSpaceMd => SizedBox(height: spacingMd);
+  static SizedBox get vSpaceLg => SizedBox(height: spacingLg);
+  static SizedBox get vSpaceXl => SizedBox(height: spacingXl);
+  static SizedBox get vSpaceXxl => SizedBox(height: spacingXxl);
+
+  static SizedBox get hSpaceXxs => SizedBox(width: spacingXxs);
+  static SizedBox get hSpaceXs => SizedBox(width: spacingXs);
+  static SizedBox get hSpaceSm => SizedBox(width: spacingSm);
+  static SizedBox get hSpaceMd => SizedBox(width: spacingMd);
+  static SizedBox get hSpaceLg => SizedBox(width: spacingLg);
+  static SizedBox get hSpaceXl => SizedBox(width: spacingXl);
+  static SizedBox get hSpaceXxl => SizedBox(width: spacingXxl);
+
+  // 반응형 여백용 SizedBox 생성 헬퍼 메서드
+  static SizedBox vSpace(BuildContext context, double height) {
+    return SizedBox(height: getResponsiveSpacing(context, height));
+  }
+
+  static SizedBox hSpace(BuildContext context, double width) {
+    return SizedBox(width: getResponsiveSpacing(context, width));
+  }
 }

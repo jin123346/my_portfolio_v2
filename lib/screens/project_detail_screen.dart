@@ -1,5 +1,6 @@
 // lib/screens/project_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:my_portfolio/screens/responsive_layout_wrapper.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -23,112 +24,290 @@ class ProjectDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(title: project.title),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 프로젝트 이미지
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                width: double.infinity,
-                color: Colors.grey.shade200,
-                child: Image.asset(
-                  project.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Center(
-                      child: Icon(Icons.image_not_supported, size: 50),
-                    );
-                  },
+    return ResponsiveLayoutWrapper(
+      child: Scaffold(
+        appBar: CustomAppBar(title: project.title),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 프로젝트 이미지
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Container(
+                  width: double.infinity,
+                  child: Image.asset(
+                    project.imageUrl,
+                    height: 350,
+                    fit: BoxFit.fitWidth,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Icon(Icons.image_not_supported, size: 50),
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 기본 정보 섹션
-                  _buildInfoSection(context),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 기본 정보 섹션
+                    _buildInfoSection(context),
 
-                  // 프로젝트 설명
-                  const SizedBox(height: 24),
-                  Text(
-                    '프로젝트 설명',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    project.description,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                    // 프로젝트 설명
+                    const SizedBox(height: 24),
+                    Text(
+                      '프로젝트 설명',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      project.description,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
 
-                  // 담당 역할 및 기능
-                  if (project.features != null && project.features!.isNotEmpty)
-                    _buildFeaturesSection(context),
+                    // 담당 역할 및 기능
+                    if (project.features != null &&
+                        project.features!.isNotEmpty)
+                      _buildFeaturesSection(context),
 
-                  // 사용 기술
-                  const SizedBox(height: 24),
-                  Text(
-                    '사용 기술',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: project.technologies.map((tech) {
-                      return Chip(
-                        label: Text(tech),
-                        backgroundColor:
-                            Theme.of(context).primaryColor.withOpacity(0.1),
-                      );
-                    }).toList(),
-                  ),
+                    // 사용 기술
+                    const SizedBox(height: 24),
+                    Text(
+                      '사용 기술',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: project.technologies.map((tech) {
+                        return Chip(
+                          label: Text(tech),
+                          backgroundColor:
+                              Theme.of(context).primaryColor.withOpacity(0.1),
+                        );
+                      }).toList(),
+                    ),
 
-                  // 트러블슈팅
-                  if (project.troubleShooting != null &&
-                      project.troubleShooting!.isNotEmpty)
-                    _buildTroubleshootingSection(context),
+                    // 트러블슈팅
+                    if (project.troubleShooting != null &&
+                        project.troubleShooting!.isNotEmpty)
+                      _buildTroubleshootingSection(context),
 
-                  // 링크 버튼
-                  const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.code),
-                          label: const Text('GitHub'),
-                          onPressed: () => _launchUrl(project.githubUrl),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      if (project.liveUrl != null)
-                        Expanded(
+                    // 링크 버튼 영역
+                    SizedBox(height: 48),
+
+                    // GitHub 링크 버튼 (여러 개일 경우)
+                    if (project.allGithubUrls.isNotEmpty)
+                      _buildGithubButtons(context),
+
+                    // 라이브 데모 링크 버튼
+                    if (project.liveUrl != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Center(
                           child: OutlinedButton.icon(
                             icon: const Icon(Icons.visibility),
                             label: const Text('라이브 데모'),
                             onPressed: () => _launchUrl(project.liveUrl!),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 16),
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                ],
+                      ),
+
+                    SizedBox(height: 32),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  // GitHub 링크 버튼 영역 (여러 개일 경우 모두 표시)
+  Widget _buildGithubButtons(BuildContext context) {
+    final githubUrls = project.allGithubUrls;
+
+    // GitHub 링크가 하나만 있는 경우
+    if (githubUrls.length == 1) {
+      return Center(
+        child: ElevatedButton.icon(
+          icon: const Icon(Icons.code),
+          label: Text(githubUrls[0]['label'] ?? 'GitHub'),
+          onPressed: () => _launchUrl(githubUrls[0]['url']!),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          ),
+        ),
+      );
+    }
+
+    // GitHub 링크가 여러 개인 경우
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text(
+            'GitHub 저장소',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        SizedBox(height: 12),
+        // 링크 버튼들을 중앙 정렬하여 표시
+        Center(
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
+            children: githubUrls
+                .map((urlInfo) => ElevatedButton.icon(
+                      icon: const Icon(Icons.code),
+                      label: Text(urlInfo['label'] ?? 'GitHub'),
+                      onPressed: () => _launchUrl(urlInfo['url']!),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 넓은 화면용 헤더 (이미지와 정보를 가로로 배치)
+  Widget _buildWideHeader(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: EdgeInsets.all(24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 프로젝트 이미지
+          Expanded(
+            flex: 3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                project.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 300,
+                    color: Colors.grey[300],
+                    child: Center(
+                      child: Icon(Icons.image_not_supported, size: 50),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          SizedBox(width: 24),
+
+          // 프로젝트 정보
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  project.title,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                SizedBox(height: 16),
+
+                // 역할 정보
+                if (project.role != null) ...[
+                  _buildInfoRow(context, '역할', project.role!),
+                  SizedBox(height: 12),
+                ],
+
+                // 기간 정보
+                if (project.period != null) ...[
+                  _buildInfoRow(context, '기간', project.period!),
+                  SizedBox(height: 12),
+                ],
+
+                // 트러블슈팅 건수
+                if (project.troubleShooting != null &&
+                    project.troubleShooting!.isNotEmpty) ...[
+                  _buildInfoRow(context, '트러블슈팅',
+                      '${project.troubleShooting!.length}건의 문제 해결 사례'),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 좁은 화면용 헤더 (이미지와 정보를 세로로 배치)
+  Widget _buildNarrowHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 프로젝트 이미지
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            project.imageUrl,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                height: 200,
+                color: Colors.grey[300],
+                child: Center(
+                  child: Icon(Icons.image_not_supported, size: 50),
+                ),
+              );
+            },
+          ),
+        ),
+
+        SizedBox(height: 16),
+
+        // 프로젝트 제목 및 정보
+        Text(
+          project.title,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        SizedBox(height: 16),
+
+        // 역할 정보
+        if (project.role != null) ...[
+          _buildInfoRow(context, '역할', project.role!),
+          SizedBox(height: 8),
+        ],
+
+        // 기간 정보
+        if (project.period != null) ...[
+          _buildInfoRow(context, '기간', project.period!),
+          SizedBox(height: 8),
+        ],
+
+        // 트러블슈팅 건수
+        if (project.troubleShooting != null &&
+            project.troubleShooting!.isNotEmpty) ...[
+          _buildInfoRow(context, '트러블슈팅',
+              '${project.troubleShooting!.length}건의 문제 해결 사례'),
+        ],
+      ],
     );
   }
 
@@ -178,7 +357,10 @@ class ProjectDetailScreen extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ),
         ],
@@ -209,7 +391,8 @@ class ProjectDetailScreen extends StatelessWidget {
                 children: [
                   const Text('• '),
                   Expanded(
-                    child: Text(project.features![index]),
+                    child: Text(project.features![index],
+                        style: Theme.of(context).textTheme.bodyLarge),
                   ),
                 ],
               ),
@@ -254,7 +437,7 @@ class ProjectDetailScreen extends StatelessWidget {
         // 트러블슈팅 제목
         Text(
           troubleShoot['title'] ?? '',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
         ),
@@ -296,7 +479,7 @@ class ProjectDetailScreen extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           content,
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ],
     );

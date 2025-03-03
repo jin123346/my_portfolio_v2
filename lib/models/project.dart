@@ -8,9 +8,9 @@ class Project {
   final String description;
   final List<String> technologies;
   final String imageUrl;
-  final String githubUrl;
+  final List<Map<String, String>> githubUrls;
   final String? liveUrl;
-
+  final String? githubUrl;
   // 추가 정보
   final String? role;
   final String? period;
@@ -23,13 +23,26 @@ class Project {
     required this.description,
     required this.technologies,
     required this.imageUrl,
-    required this.githubUrl,
+    this.githubUrl,
     this.liveUrl,
     this.role,
     this.period,
     this.features,
     this.troubleShooting,
+    this.githubUrls = const [],
   }) : id = id ?? const Uuid().v4(); // ID가 없으면 자동 생성
+
+  // GitHub URL 목록을 반환하는 getter
+  List<Map<String, String>> get allGithubUrls {
+    List<Map<String, String>> result = List.from(githubUrls);
+
+    // 하위 호환성을 위해 githubUrl이 있는데 githubUrls가 비어있다면 추가
+    if (githubUrl != null && githubUrls.isEmpty) {
+      result.add({"label": "GitHub", "url": githubUrl!});
+    }
+
+    return result;
+  }
 
   // JSON에서 Project 객체로 변환
   factory Project.fromJson(Map<String, dynamic> json) {

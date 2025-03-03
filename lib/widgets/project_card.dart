@@ -4,12 +4,19 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/project.dart';
 import '../screens/project_detail_screen.dart';
+import '../screens/responsive_layout_wrapper.dart';
 
 // 프로젝트 카드 위젯 - 각 프로젝트 정보를 보여줍니다
 class ProjectCard extends StatelessWidget {
   final Project project;
 
   const ProjectCard({Key? key, required this.project}) : super(key: key);
+  Future<void> _launchUrl(String urlString) async {
+    final Uri uri = Uri.parse(urlString);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw '해당 URL을 열 수 없습니다: $urlString';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +25,10 @@ class ProjectCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProjectDetailScreen(
-              project: project,
+            builder: (context) => ResponsiveLayoutWrapper(
+              child: ProjectDetailScreen(
+                project: project,
+              ),
             ),
           ),
         );
@@ -37,9 +46,9 @@ class ProjectCard extends StatelessWidget {
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               child: Image.asset(
                 project.imageUrl,
-                height: 200,
+                height: 350,
                 width: double.infinity,
-                fit: BoxFit.contain,
+                fit: BoxFit.fitWidth,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 200,
@@ -86,22 +95,19 @@ class ProjectCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       // GitHub 버튼
-                      TextButton.icon(
-                        icon: Icon(Icons.code),
-                        label: Text('GitHub'),
-                        onPressed: () async {
-                          if (await canLaunch(project.githubUrl)) {
-                            await launch(project.githubUrl);
-                          }
-                        },
-                      ),
+
+                      // GitHub 링크 버튼 (여러 개일 경우)
+                      if (project.allGithubUrls.isNotEmpty)
+                        _buildGithubButtons(context),
+
                       // 라이브 데모 버튼 (있는 경우에만 표시)
-                      if (project.liveUrl != null)
+                      if (project.liveUrl != null &&
+                          project.liveUrl!.isNotEmpty)
                         TextButton.icon(
                           icon: Icon(Icons.visibility),
                           label: Text('라이브 데모'),
                           onPressed: () async {
-                            _launchUrl(project.githubUrl);
+                            _launchUrl(project.liveUrl!);
                           },
                         ),
                     ],
@@ -115,12 +121,46 @@ class ProjectCard extends StatelessWidget {
     );
   }
 
-  Future<void> _launchUrl(String urlString) async {
-    final Uri uri = Uri.parse(urlString);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      throw '해당 URL을 열 수 없습니다: $urlString';
+  // GitHub 링크 버튼 영역 (여러 개일 경우 모두 표시)
+  Widget _buildGithubButtons(BuildContext context) {
+    final githubUrls = project.allGithubUrls;
+
+    // GitHub 링크가 하나만 있는 경우
+    if (githubUrls.length == 1) {
+      return TextButton.icon(
+        icon: Icon(Icons.code),
+        label: Text('GitHub'),
+        onPressed: () => _launchUrl(githubUrls[0]['url']!),
+      );
     }
+
+    // GitHub 링크가 여러 개인 경우
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'GitHub 저장소',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        SizedBox(width: 12),
+        // 링크 버튼들을 중앙 정렬하여 표시
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          children: githubUrls
+              .map((urlInfo) => TextButton.icon(
+                    icon: const Icon(Icons.code),
+                    label: Text(urlInfo['label'] ?? 'GitHub'),
+                    onPressed: () => _launchUrl(urlInfo['url']!),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 12),
+                    ),
+                  ))
+              .toList(),
+        ),
+      ],
+    );
   }
 }
